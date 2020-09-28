@@ -11,6 +11,10 @@ import v.checker
 import v.table
 import v.pref
 
+const (
+	log_file = os.resource_abs_path('output.txt')
+)
+
 // TODO: ignore version in files for now.
 struct Vls {
 mut:
@@ -55,6 +59,24 @@ fn (mut vls Vls) workspace_symbol(id int, raw string) {
 		}
 	}
 	respond(json.encode(JrpcResponse<[]lsp.SymbolInformation>{
+		id: id
+		result: symbols
+	}))
+}
+
+// textDocument/documentSymbol
+fn (mut vls Vls) document_symbol(id int, raw string) {
+	params := json.decode(lsp.DocumentSymbolParams, raw) or {
+		emit_parse_error()
+		return
+	}
+	fs_path := get_fspath_from_uri(params.text_document.uri)
+	if fs_path.len == 0 {
+		return
+	}
+	file_ast := vls.files[fs_path]
+	symbols := vls.provide_symbols(fs_path, file_ast.stmts)
+	respond(json.encode(JrpcResponse<[]lsp.DocumentSymbol>{
 		id: id
 		result: symbols
 	}))
@@ -113,7 +135,7 @@ fn (mut vls Vls) initialize(id int, raw string) {
 	// if workspace_capa['symbol'].as_map()['dynamic_registration'].bool() {
 		server_capabilities.code_lens_provider.resolve_provider = false
 		server_capabilities.workspace_symbol_provider = true
-		// server_capabilities.document_symbol_provider = true
+		server_capabilities.document_symbol_provider = true
 	// }
 
 	// if doc_capa['publish_diagnostics'].as_map()['related_information'].bool() {
@@ -155,6 +177,7 @@ fn (mut vls Vls) execute(payload string) {
 		'textDocument/didOpen' { vls.open_file(request.id, request.params) }
 		'textDocument/didSave' { vls.save_file(request.id, request.params) }
 		'workspace/symbol' { vls.workspace_symbol(request.id, request.params) }
+		'textDocument/documentSymbol' { vls.document_symbol(request.id, request.params) }
 		else {
 			if vls.status != .initialized {
 				emit_error(jsonrpc.server_not_initialized)
@@ -165,7 +188,7 @@ fn (mut vls Vls) execute(payload string) {
 }
 
 fn (mut vls Vls) start_loop() {
-	log_file := os.resource_abs_path('output.txt')
+	log_requests := os.getenv('VLS_LOG') == '1'
 
 	for {
 		first_line := get_raw_input()
@@ -184,13 +207,16 @@ fn (mut vls Vls) start_loop() {
 		}
 
 		payload := buf.str()
-		log_contents := os.read_file(log_file) or { '' }
-		os.write_file(log_file, log_contents + payload[1..] + '\n')
+		if log_requests {
+			log_contents := os.read_file(log_file) or { '' }
+			os.write_file(log_file, log_contents + payload[1..] + '\n')
+		}
 		vls.execute(payload[1..])
 	}
 }
 
 fn main() {
 	mut vls := Vls{}
+	vls.checker = checker.new_checker(vls.table, vls.prefs)
 	vls.start_loop()
 }

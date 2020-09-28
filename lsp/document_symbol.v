@@ -3,6 +3,7 @@ module lsp
 // method: ‘textDocument/documentSymbol’
 // response: []DocumentSymbol | []SymbolInformation | none
 pub struct DocumentSymbolParams {
+pub:
 	text_document TextDocumentIdentifier [json:textDocument]
 }
 

@@ -28,6 +28,14 @@ fn uri_file_str(f_path string) string {
 	return 'file://${authority}${path}'
 }
 
+fn get_fspath_from_uri(str string) string {
+	uri := urllib.parse(str) or {
+		return ''
+	}
+
+	return uri.path
+}
+
 fn uri_file(f_path string) ?urllib.URL {
 	str := uri_file_str(f_path)
 	uri := urllib.parse(str) or {
@@ -49,12 +57,12 @@ fn (vls Vls) to_pos(file_path string, pos token.Position) lsp.Position {
 	source := vls.file_contents[file_path]
 	p := util.imax(0, util.imin(source.len - 1, pos.pos))
 	column := util.imax(0, pos.pos - p - 1)
-	return lsp.Position{ line: pos.line_nr+1, character: util.imax(1, column+1) }
+	return lsp.Position{ line: pos.line_nr, character: util.imax(1, column+1) }
 }
 
 fn (vls Vls) to_range(file_path string, pos token.Position) lsp.Range {
 	start_pos := vls.to_pos(file_path, pos)
-	end_pos := { start_pos | character: start_pos.character+(pos.len-1) }
+	end_pos := { start_pos | character: start_pos.character + pos.len }
 	range := lsp.Range{ start: start_pos, end: end_pos }
 	return range
 }

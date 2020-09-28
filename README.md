@@ -1,8 +1,8 @@
-# vls
-V Language Server that aims to be used with LSP v3.15-compatible clients.
+# vls2
+VLS (V Language Server) is an LSP v3.15-compatible language server for V.
 
 ## Current Status
-vls is still a work-in-progress.
+vls is a work-in-progress. It requires a modified version of [vscode-vlang](https://github.com/vlang/vscode-vlang) to be installed (will publish later) and [vlang#6489](https://github.com/vlang/v/pull/6489) to be merged in order to be compiled.
 
 ## Development
 To start working with vls, you need to have git and the latest version of [V](https://github.com/vlang/v) installed. Then do the following:
@@ -52,7 +52,7 @@ v -o vls .
 - [x] `didSave`
 - [ ] `didClose`
 ### Diagnostics
-- [x] `publishDiagnostics`
+- [x] `publishDiagnostics` (initial support)
 ### Language Features
 - [ ] `completion`
 - [ ] `completion resolve`
@@ -64,7 +64,7 @@ v -o vls .
 - [ ] `implementation`
 - [ ] `references`
 - [ ] `documentHighlight`
-- [ ] `documentSymbol`
+- [x] `documentSymbol` (initial support)
 - [ ] `codeAction`
 - [ ] `codeLens`
 - [ ] `codeLens resolve`

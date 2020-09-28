@@ -6,6 +6,7 @@ import os
 import lsp
 import v.parser
 import v.ast
+import time
 
 fn (mut vls Vls) insert_file(uri string) {
 	doc_uri := uri_file(uri) or {
@@ -39,6 +40,8 @@ fn (mut vls Vls) insert_file(uri string) {
 			}
 		}
 		vls.file_contents[file] = raw_text
+		time.sleep_ms(10)
+		vls.publish_diagnostics(file)
 	}
 }
 
