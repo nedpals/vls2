@@ -188,7 +188,7 @@ fn (mut vls Vls) execute(payload string) {
 }
 
 fn (mut vls Vls) start_loop() {
-	log_requests := os.getenv('VLS_LOG') == '1'
+	log_requests := os.getenv('VLS_LOG') == '1' || '-log' in os.args
 
 	for {
 		first_line := get_raw_input()
@@ -196,12 +196,17 @@ fn (mut vls Vls) start_loop() {
 			continue
 		}
 
-		mut conlen := first_line[content_length.len..].int() + 1
+		mut conlen := first_line[content_length.len..].int()
+		$if !windows {
+			conlen = conlen + 1
+		}
 		mut buf := strings.new_builder(200)
 
 		for conlen > 0 {
 			mut c := C.fgetc(C.stdin)
-			if c == 10 { continue }
+			$if !windows {
+				if c == 10 { continue }
+			}
 			buf.write_b(byte(c))
 			conlen--
 		}

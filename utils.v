@@ -30,7 +30,7 @@ fn uri_file_str(f_path string) string {
 
 fn get_fspath_from_uri(str string) string {
 	uri := urllib.parse(str) or {
-		return ''
+		return str
 	}
 
 	return uri.path
