@@ -41,8 +41,9 @@ fn (mut vls Vls) insert_file(uri string) {
 		}
 		vls.file_contents[file] = raw_text
 		time.sleep_ms(10)
-		vls.publish_diagnostics(file)
 	}
+
+	vls.publish_diagnostics(doc_uri.path)
 }
 
 // textDocument/didOpen
@@ -63,4 +64,19 @@ fn (mut vls Vls) save_file(id int, raw string) {
 	}
 
 	vls.insert_file(doc.text_document.uri)
+}
+
+// textDocument/didClose
+fn (mut vls Vls) close_file(id int, raw string) {
+	doc := json.decode(lsp.DidCloseTextDocumentParams, raw) or {
+		emit_parse_error()
+		return
+	}
+
+// TODO: close file if the entire workspace folder has closed
+	doc_uri := uri_file(doc.text_document.uri) or {
+		emit_error(jsonrpc.invalid_request)
+		return
+	}
+	vls.clear_diagnostics(doc_uri.path)
 }

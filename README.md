@@ -50,7 +50,7 @@ v -o vls .
 - [ ] `willSave`
 - [ ] `willSaveWaitUntil`
 - [x] `didSave`
-- [ ] `didClose`
+- [x] `didClose`
 ### Diagnostics
 - [x] `publishDiagnostics` (initial support)
 ### Language Features

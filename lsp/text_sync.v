@@ -70,6 +70,7 @@ pub struct TextDocumentChangeRegistrationOptions {
 // method: ‘textDocument/didClose’
 // notification
 pub struct DidCloseTextDocumentParams {
+pub:
 	text_document TextDocumentIdentifier [json:textDocument]
 }
 

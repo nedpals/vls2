@@ -152,3 +152,15 @@ fn (mut vls Vls) publish_diagnostics(file_path string) {
 	}
 	respond(json.encode(result))
 }
+
+fn (mut vls Vls) clear_diagnostics(file_path string) {
+	result := JrpcRequest3<lsp.PublishDiagnosticsParams>{
+		method: 'textDocument/publishDiagnostics'
+		params: lsp.PublishDiagnosticsParams{
+			uri: uri_file_str(file_path)
+			diagnostics: []lsp.Diagnostic{}
+		}
+	}
+
+	respond(json.encode(result))
+}

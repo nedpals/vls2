@@ -176,6 +176,7 @@ fn (mut vls Vls) execute(payload string) {
 		}
 		'textDocument/didOpen' { vls.open_file(request.id, request.params) }
 		'textDocument/didSave' { vls.save_file(request.id, request.params) }
+		'textDocument/didClose' { vls.close_file(request.id, request.params) }
 		'workspace/symbol' { vls.workspace_symbol(request.id, request.params) }
 		'textDocument/documentSymbol' { vls.document_symbol(request.id, request.params) }
 		else {
