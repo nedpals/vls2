@@ -10,6 +10,8 @@ import v.ast
 import v.checker
 import v.table
 import v.pref
+import v.doc
+import v.fmt
 
 const (
 	log_file = os.resource_abs_path('output.txt')
@@ -23,6 +25,8 @@ mut:
 	files map[string]ast.File
 	prefs  &pref.Preferences = &pref.Preferences{ output_mode: .silent }
 	table &table.Table = table.new_table()
+	doc doc.Doc
+	doc_nodes map[string][]doc.DocNode
 	checker checker.Checker
 }
 
@@ -224,5 +228,17 @@ fn (mut vls Vls) start_loop() {
 fn main() {
 	mut vls := Vls{}
 	vls.checker = checker.new_checker(vls.table, vls.prefs)
+	vls.doc = doc.Doc{
+		table: vls.table
+		prefs: vls.prefs
+		checker: vls.checker
+		pub_only: false
+		with_head: false
+		fmt: fmt.Fmt{
+			indent: 0
+			is_debug: false
+			table: vls.table
+		}
+	}
 	vls.start_loop()
 }

@@ -40,6 +40,8 @@ fn (mut vls Vls) insert_file(uri string) {
 			}
 		}
 		vls.file_contents[file] = raw_text
+		vls.doc_nodes[file] = vls.doc.generate_from_ast(file_ast, file_ast.mod.name)
+		vls.doc.fmt.mod2alias = map[string]string{}
 		time.sleep_ms(10)
 	}
 

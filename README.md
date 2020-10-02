@@ -2,12 +2,14 @@
 VLS (V Language Server) is a LSP v3.15-compatible language server for V.
 
 ## Current Status
-vls is a work-in-progress. It requires a modified version of [vscode-vlang](https://github.com/vlang/vscode-vlang) to be installed (will publish later) and [vlang#6489](https://github.com/vlang/v/pull/6489) to be merged in order to be compiled.
+vls is a work-in-progress. It requires a modified version of [vscode-vlang#166](https://github.com/vlang/vscode-vlang/pull/166) to run and interact with the server.
+
+Windows support is also unstable for now. Please file an issue if you experience problems with it.
 
 ## Development
 To start working with vls, you need to have git and the latest version of [V](https://github.com/vlang/v) installed. Then do the following:
 ```
-git clone https://github.com/nedpals/vls.git && cd vls/
+git clone https://github.com/nedpals/vls2.git vls && cd vls/
 
 # Build the project
 v -o vls .
