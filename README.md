@@ -19,10 +19,12 @@ v -o vls .
 ```
 
 ## Roadmap
+> Note: For now, symbols are recomputed during `didOpen`/`didSave`. On-demand recomputation will be implemented in the future.
+
 - [ ] Queue support (support for cancelling requests)
 
 ### General
-- [x] `initialize`
+- [x] `initialize` (Activates features based on VSCode's capabilities for now.)
 - [x] `initialized`
 - [x] `shutdown`
 - [x] `exit`
