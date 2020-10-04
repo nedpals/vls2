@@ -14,7 +14,7 @@ fn (mut vls Vls) insert_file(uri string) {
 		return
 	}
 
-	base := os.base_dir(doc_uri.path)
+	base := os.dir(doc_uri.path)
 	project_files := os.ls(base) or {
 		emit_error(jsonrpc.invalid_request)
 		return
