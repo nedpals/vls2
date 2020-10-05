@@ -12,6 +12,7 @@ import v.table
 import v.pref
 import v.doc
 import v.fmt
+import v.scanner
 
 const (
 	log_file = os.resource_abs_path('output.txt')
@@ -22,12 +23,17 @@ struct Vls {
 mut:
 	status ServerStatus = .initializing
 	file_contents map[string]string
+	doc_nodes map[string][]doc.DocNode
+	scanned map[string][]&scanner.Scanner
 	files map[string]ast.File
 	prefs  &pref.Preferences = &pref.Preferences{ output_mode: .silent }
 	table &table.Table = table.new_table()
 	doc doc.Doc
-	doc_nodes map[string][]doc.DocNode
 	checker checker.Checker
+	// for completion
+	saved_completion lsp.CompletionList
+	saved_offset int = -1
+	saved_filename string
 }
 
 enum ServerStatus {
@@ -36,89 +42,197 @@ enum ServerStatus {
 	shutdown
 }
 
-// workspace/symbol
-fn (mut vls Vls) workspace_symbol(id int, raw string) {
-	// _ := json.decode(lsp.WorkspaceSymbolParams, raw) or {
-	// 	emit_parse_error()
-	// 	return
-	// }
-	mut symbols := []lsp.SymbolInformation{}
-	for filename, file_ast in vls.files {
-		stmts := file_ast.stmts
+fn (vls Vls) compute_offset(file_path string, line int, col int) int {
+	text := vls.file_contents[file_path]
+	lines := text.split_into_lines()
+	mut offset := 0
 
-		for stmt in stmts {
-			if stmt is ast.ConstDecl {
-				for field in stmt.fields {
-					symbols << lsp.SymbolInformation{
-						name: field.name
-						kind: .constant
-						location: vls.to_loc(filename, field.pos)
-						container_name: field.name 
-					}
-				}
-			} else {
-				sym := vls.generate_symbol(filename, stmt) or { continue }
-				symbols << sym
+	for i, ln in lines {
+		if i == line {
+			if col > ln.len-1 {
+				return -1	
 			}
+			if ln.len == 0 {
+				offset++
+				break
+			}
+			offset += col
+			break
+		} else {
+			offset += ln.len+1
 		}
 	}
-	respond(json.encode(JrpcResponse<[]lsp.SymbolInformation>{
-		id: id
-		result: symbols
-	}))
+
+	return offset
 }
 
-// textDocument/documentSymbol
-fn (mut vls Vls) document_symbol(id int, raw string) {
-	params := json.decode(lsp.DocumentSymbolParams, raw) or {
+fn (mut vls Vls) completion(id int, raw string) {
+	// use position for now
+	params := json.decode(lsp.CompletionParams, raw) or {
 		emit_parse_error()
 		return
 	}
+	ctx := params.context
+	pos := params.position
 	fs_path := get_fspath_from_uri(params.text_document.uri)
 	if fs_path.len == 0 {
 		return
 	}
 	file_ast := vls.files[fs_path]
-	symbols := vls.provide_symbols(fs_path, file_ast.stmts)
-	respond(json.encode(JrpcResponse<[]lsp.DocumentSymbol>{
+	offset := vls.compute_offset(fs_path, pos.line, pos.character)
+
+	// TODO: will be removed once there is support for on-demand computation
+	if ctx.trigger_kind == .invoked && offset != -1 {
+		mut items := []lsp.CompletionItem{}
+		doc_nodes := vls.doc.generate_from_ast_with_pos(file_ast, offset)
+		for node in doc_nodes {
+			kind := match node.attrs['category'] {
+				'Constants' {
+					lsp.CompletionItemKind.constant
+				}
+				'Enums' {
+					lsp.CompletionItemKind.@enum
+				}
+				'Interfaces' {
+					lsp.CompletionItemKind.@interface
+				}
+				'Structs' {
+					lsp.CompletionItemKind.@struct
+				}
+				'Typedefs' {
+					lsp.CompletionItemKind.type_parameter
+				}
+				'Functions',
+				'Methods' {
+					lsp.CompletionItemKind.function
+				}
+				'Variables' {
+					lsp.CompletionItemKind.variable
+				}
+				else {
+					lsp.CompletionItemKind.field
+				}
+			}
+			items << lsp.CompletionItem{
+				label: node.name
+				kind: kind
+				detail: node.attrs['return_type']
+				documentation: lsp.MarkupContent{
+					kind: 'markdown'
+					value: node.comment
+				}
+				deprecated: false
+			}
+		}
+
+		vls.saved_offset = offset
+		vls.saved_filename = fs_path
+		vls.saved_completion = lsp.CompletionList{
+			is_incomplete: false
+			items: items
+		}
+	}
+	respond(json.encode(JrpcResponse<lsp.CompletionList>{
 		id: id
-		result: symbols
+		result: vls.saved_completion
 	}))
 }
 
-fn (vls Vls) generate_symbol(file string, stmt ast.Stmt) ?lsp.SymbolInformation {
-	match stmt {
-		ast.FnDecl {
-			return lsp.SymbolInformation{
-				name: stmt.name
-				kind: .function
-				deprecated: stmt.is_deprecated
-				location: vls.to_loc(file, stmt.pos)
-				container_name: stmt.name 
+// TODO: use scanner for it
+fn (vls Vls) offset_to_doc_pos(file_path string, start_pos, end_pos int) doc.DocPos {
+	text := vls.file_contents[file_path]
+	if start_pos > text.len || end_pos > text.len {
+		return doc.DocPos{-1, -1, 0}
+	}
+
+	lines := text.split_into_lines()
+	len := end_pos - start_pos
+	mut line := -1
+	mut col := -1
+	mut total := start_pos
+	mut has_pos := false
+
+	for i, ln in lines {
+		for j in 0..ln.len {
+			total--
+			if total == 0 {
+				line = i
+				col = j
+				has_pos = true
+				break
 			}
 		}
-		ast.StructDecl {
-			return lsp.SymbolInformation{
-				name: stmt.name
-				kind: .@struct
-				deprecated: false
-				location: vls.to_loc(file, stmt.pos)
-				container_name: stmt.name 
-			}
-		}
-		ast.EnumDecl {
-			return lsp.SymbolInformation{
-				name: stmt.name
-				kind: .@enum
-				deprecated: false
-				location: vls.to_loc(file, stmt.pos)
-				container_name: stmt.name 
-			}
-		}
-		else {
-			return none
+		if has_pos {
+			break
 		}
 	}
+
+	// line - col - len
+	return doc.DocPos{line, col, len}
+}
+
+fn (mut vls Vls) hover(id int, raw string) {
+	params := json.decode(lsp.HoverParams, raw) or {
+		emit_parse_error()
+		return
+	}
+
+	fs_path := get_fspath_from_uri(params.text_document.uri)
+	if fs_path.len == 0 {
+		return
+	}
+
+	pos := params.position
+	offset := vls.compute_offset(fs_path, pos.line, pos.character)
+	show_message(.info, offset.str())
+	if offset == -1 {
+		return
+	}
+
+	text := vls.file_contents[fs_path]
+	mut start_pos := offset
+	mut end_pos := offset
+
+	for {
+		c := text[end_pos]
+		if (c.is_letter() || c.is_digit() || c == `_`) && end_pos < text.len {
+			end_pos++
+			continue
+		}
+		break
+	}
+
+	for {
+		c := text[start_pos]
+		if (c.is_letter() || c.is_digit() || c == `_`) && start_pos > 0 {
+			start_pos--
+			continue
+		}
+		break
+	}
+
+	doc_pos := vls.offset_to_doc_pos(fs_path, start_pos, end_pos)
+	if doc_pos.line == -1 && doc_pos.col == -1 {
+		return
+	}
+
+	line := text.split_into_lines()[doc_pos.line].trim_space()
+	if line.starts_with('//') || line.starts_with('/*') {
+		return
+	}
+
+	range := doc_pos_to_lsp_range({ doc_pos | line: doc_pos.line+1 })
+	log_message(.info, range.str())
+	respond(json.encode(JrpcResponse<lsp.Hover>{
+		id: id
+		result: lsp.Hover{
+			contents: lsp.MarkedString{
+				language: 'v'
+				value: text[start_pos..end_pos]
+			}
+			range: range
+		}
+	}))
 }
 
 fn (mut vls Vls) initialize(id int, raw string) {
@@ -134,12 +248,13 @@ fn (mut vls Vls) initialize(id int, raw string) {
 	// TODO: focus on capabilities for now
 	mut server_capabilities := lsp.ServerCapabilities{
 		text_document_sync: 1 // send full content on each revision for now.
+		// hover_provider: true
+		workspace_symbol_provider: true
+		document_symbol_provider: true
 	}
 
 	// if workspace_capa['symbol'].as_map()['dynamic_registration'].bool() {
 		server_capabilities.code_lens_provider.resolve_provider = false
-		server_capabilities.workspace_symbol_provider = true
-		server_capabilities.document_symbol_provider = true
 	// }
 
 	// if doc_capa['publish_diagnostics'].as_map()['related_information'].bool() {
@@ -147,9 +262,7 @@ fn (mut vls Vls) initialize(id int, raw string) {
 	// }
 
 	// if doc_capa.completion.dynamic_registration {
-	// 	server_capabilities.completion_provider = lsp.CompletionOptions{
-
-	// 	}
+		// server_capabilities.completion_provider.resolve_provider = false
 	// }
 	respond(json.encode(JrpcResponse<lsp.InitializeResult>{
 		id: id,
@@ -183,6 +296,8 @@ fn (mut vls Vls) execute(payload string) {
 		'textDocument/didClose' { vls.close_file(request.id, request.params) }
 		'workspace/symbol' { vls.workspace_symbol(request.id, request.params) }
 		'textDocument/documentSymbol' { vls.document_symbol(request.id, request.params) }
+		// 'textDocument/completion' { vls.completion(request.id, request.params) }
+		// 'textDocument/hover' { vls.hover(request.id, request.params) }
 		else {
 			if vls.status != .initialized {
 				emit_error(jsonrpc.server_not_initialized)

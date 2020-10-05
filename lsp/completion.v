@@ -1,6 +1,7 @@
 module lsp
 
 pub struct CompletionOptions {
+pub mut:
 	resolve_provider bool [json:resolveProvider]
 	trigger_characters []string [json:triggerCharacters]
 }
@@ -17,6 +18,7 @@ pub struct CompletionItemSettings {
 // method: ‘textDocument/completion’
 // response: []CompletionItem | CompletionList | none
 pub struct CompletionParams {
+pub:
 	// extend: TextDocumentPositionParams
 	text_document TextDocumentIdentifier [json:textDocument]
 	position Position
@@ -30,11 +32,13 @@ pub enum CompletionTriggerKind {
 }
 
 pub struct CompletionContext {
+pub:
 	trigger_kind CompletionTriggerKind [json:triggerKind]
 	trigger_character string [json:triggerCharacter]
 }
 
 pub struct CompletionList {
+pub:
 	is_incomplete bool [json:isIncomplete]
 	items []CompletionItem
 }
@@ -45,11 +49,12 @@ pub const (
 )
 
 pub struct CompletionItem {
+pub:
 	label string
-	kind int
+	kind CompletionItemKind
 	detail string
 	// documentation string | MarkupContent
-	documentation string [raw]
+	documentation MarkupContent
 	deprecated bool
 	preselect bool
 	sort_text string [json:sortText]
