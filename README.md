@@ -35,7 +35,7 @@ v -o vls .
 - [x] `logMessage`
 - [ ] `progress/create`
 ### Telemetry
-- [ ] `event`
+- [x] `event` (Implemented but not usable)
 ### Client
 - [ ] `registerCapability`
 - [ ] `unregisterCapability`
@@ -58,9 +58,9 @@ v -o vls .
 ### Diagnostics
 - [x] `publishDiagnostics` (initial support)
 ### Language Features
-- [ ] `completion`
+- [ ] `completion` (Implemented and disabled now.)
 - [ ] `completion resolve`
-- [ ] `hover`
+- [ ] `hover` (implemented disabled for now)
 - [ ] `signatureHelp`
 - [ ] `declaration`
 - [ ] `definition`
