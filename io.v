@@ -21,7 +21,7 @@ pub mut:
 }
 
 // for requests without an id
-struct JrpcRequest3<T> {
+struct JrpcNotification<T> {
 pub mut:
   jsonrpc string = jsonrpc.version
   method string
@@ -77,7 +77,7 @@ fn emit_parse_error() {
 
 [inline]
 fn show_message(typ lsp.MessageType, message string) {
-	respond(json.encode(JrpcRequest3<lsp.ShowMessageParams>{
+	respond(json.encode(JrpcNotification<lsp.ShowMessageParams>{
 		method: 'window/showMessage'
 		params: lsp.ShowMessageParams{typ, message}
 	}))
@@ -85,7 +85,7 @@ fn show_message(typ lsp.MessageType, message string) {
 
 [inline]
 fn log_message(typ lsp.MessageType, message string) {
-	respond(json.encode(JrpcRequest3<lsp.LogMessageParams>{
+	respond(json.encode(JrpcNotification<lsp.LogMessageParams>{
 		method: 'window/logMessage'
 		params: lsp.LogMessageParams{typ, message}
 	}))
@@ -93,8 +93,16 @@ fn log_message(typ lsp.MessageType, message string) {
 
 [inline]
 fn show_message_request(typ lsp.MessageType, message string, actions []lsp.MessageActionItem) {
-	respond(json.encode(JrpcRequest3<lsp.ShowMessageRequestParams>{
+	respond(json.encode(JrpcNotification<lsp.ShowMessageRequestParams>{
 		method: 'window/showMessage'
 		params: lsp.ShowMessageRequestParams{typ, message, actions}
+	}))
+}
+
+[inline]
+fn telemetry<T>(data T) {
+	respond(json.encode(JrpcNotification<T>{
+		method: 'telemetry/event'
+		params: data
 	}))
 }
