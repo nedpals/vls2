@@ -2,21 +2,25 @@
 VLS (V Language Server) is a LSP v3.15-compatible language server for V.
 
 ## Current Status
-vls is a work-in-progress. It requires a modified version of [vscode-vlang#166](https://github.com/vlang/vscode-vlang/pull/166) to run and interact with the server.
+vls is a work-in-progress. This version of VLS is written from scratch and will be migrated to [https://github.com/vlang/vls](https://github.com/vlang/vls) once it is finalized.
 
 Windows support is also unstable for now. Please file an issue if you experience problems with it.
 
-## Development
-To start working with vls, you need to have git and the latest version of [V](https://github.com/vlang/v) installed. Then do the following:
+## Installation
+Installation requires you to have Git and V installed and compile the language server by yourself. You need to execute the following:
 ```
 git clone https://github.com/nedpals/vls2.git vls && cd vls/
 
 # Build the project
 v -o vls .
-
-# Run the server
-./vls
 ```
+
+## Usage
+In order to use the language server, you need to have a text editor with support for LSP. In this case, the recommended editor for testing (for now) is to have [Visual Studio Code](https://code.visualstudio.com) and the latest `master` version of [vscode-vlang](https://github.com/vlang/vscode-vlang) extension installed.
+
+![Instructions](instructions.png)
+
+Afterwards, go to your editor's configuration and scroll to the V extension section. From there, enable VLS by checking the box and input the absolute path of where the language server is located.
 
 ## Roadmap
 > Note: For now, symbols are recomputed during `didOpen`/`didSave`. On-demand recomputation will be implemented in the future.
@@ -29,11 +33,13 @@ v -o vls .
 - [x] `shutdown`
 - [x] `exit`
 - [ ] `$/cancelRequest` (VLS does not support request cancellation yet.)
+- [ ] `$/progress`
 ### Window
 - [x] `showMessage`
 - [x] `showMessageRequest`
 - [x] `logMessage`
 - [ ] `progress/create`
+- [ ] `progress/cancel`
 ### Telemetry
 - [x] `event` (Implemented but not usable)
 ### Client
@@ -83,7 +89,13 @@ v -o vls .
 - [ ] `prepareRename`
 - [ ] `foldingRange`
     
-    
-    
-    
+# Contributing
+## Submitting a pull request
+- Fork it (https://github.com/nedpals/vls2/fork)
+- Create your feature branch (git checkout -b my-new-feature)
+- Commit your changes (git commit -am 'Add some feature')
+- Push to the branch (git push origin my-new-feature)
+- Create a new Pull Request
 
+# Contributors
+- [nedpals](https://github.com/nedpals) - creator and maintainer
