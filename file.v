@@ -5,6 +5,7 @@ import jsonrpc
 import os
 import lsp
 import v.parser
+import v.scanner
 import v.ast
 import time
 
