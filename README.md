@@ -2,7 +2,9 @@
 VLS (V Language Server) is a LSP v3.15-compatible language server for V.
 
 ## Current Status
-vls is a work-in-progress. This version of VLS is written from scratch and will be migrated to [https://github.com/vlang/vls](https://github.com/vlang/vls) once it is finalized.
+VLS is a work-in-progress. This version of VLS is rewritten from scratch and will be migrated to [https://github.com/vlang/vls](https://github.com/vlang/vls) once it is finalized.
+
+VLS has also issues with memory management (for now) and may not be guaranteed to work on large codebases.
 
 Windows support is also unstable for now. Please file an issue if you experience problems with it.
 
@@ -32,7 +34,7 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [x] `initialized`
 - [x] `shutdown`
 - [x] `exit`
-- [ ] `$/cancelRequest` (VLS does not support request cancellation yet.)
+- [x] `$/cancelRequest`
 - [ ] `$/progress`
 ### Window
 - [x] `showMessage`
@@ -50,7 +52,7 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [ ] `didChangeWorkspaceFolder`
 - [ ] `didChangeConfiguration`
 - [ ] `configuration`
-- [ ] `didChangeWatchedFiles` (use `didOpen`/`didSave` instead)
+- [x] `didChangeWatchedFiles`
 - [x] `symbol` (initial support)
 - [ ] `executeCommand`
 - [ ] `applyEdit`
@@ -64,9 +66,9 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 ### Diagnostics
 - [x] `publishDiagnostics` (initial support)
 ### Language Features
-- [ ] `completion` (Implemented and disabled now.)
+- [x] `completion` (disabled for now)
 - [ ] `completion resolve`
-- [ ] `hover` (implemented disabled for now)
+- [x] `hover` (disabled for now)
 - [ ] `signatureHelp`
 - [ ] `declaration`
 - [ ] `definition`
