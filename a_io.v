@@ -3,6 +3,7 @@ module main
 import jsonrpc
 import lsp
 import json
+import strings
 
 fn C.fgetc(stream byteptr) int
 
@@ -44,17 +45,16 @@ struct JrpcResponse2<T> {
 
 fn get_raw_input() string {
 	eof := C.EOF
-	mut c := -2
-	mut buf := ''
+	mut buf := strings.new_builder(200)
 	for {
-		c = C.fgetc(C.stdin)
+		c := C.fgetc(C.stdin)
 		chr := byte(c)
 		if buf.len > 2 && (c == eof || chr in [`\r`, `\n`]) {
-			return buf
+			break
 		}
-		buf += chr.str()
+		buf.write_b(chr)
 	}
-	return buf
+	return buf.str()
 }
 
 [inline]
@@ -104,5 +104,15 @@ fn telemetry<T>(data T) {
 	respond(json.encode(JrpcNotification<T>{
 		method: 'telemetry/event'
 		params: data
+	}))
+}
+
+[inline]
+fn cancel_request(id int) {
+	respond(json.encode(JrpcNotification<lsp.CancelParams>{
+		method: '$/cancelRequest'
+		params: lsp.CancelParams{
+			id: id
+		}
 	}))
 }
