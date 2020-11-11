@@ -1,4 +1,4 @@
-module main
+module vls_old
 
 import net.urllib
 import v.token
@@ -55,7 +55,7 @@ fn uri_str_to_fspath(uris string) ?string {
 	}
 	fs_path := uri.path
 	if fs_path.len == 0 {
-		return error('uri invalid')
+		return error_message('uri invalid')
 	}
 	return fs_path
 }

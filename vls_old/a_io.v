@@ -1,4 +1,4 @@
-module main
+module vls_old
 
 import jsonrpc
 import lsp
@@ -58,26 +58,32 @@ fn get_raw_input() string {
 }
 
 [inline]
-fn respond(data string) {
-	print('Content-Length: ${data.len}\r\n\r\n$data')
+fn result_message<T>(obj T) string {
+	data := json.encode(obj)
+	return 'Content-Length: ${data.len}\r\n\r\n$data'
 }
 
 [inline]
-fn emit_error(err_code int) {
+pub fn send(response string) {
+	print(response)
+}
+
+[inline]
+fn error_message(err_code int) string {
 	err := JrpcResponse2<string>{
 		error: jsonrpc.send_error_code(err_code)
 	}
-	respond(json.encode(err))
+	return json.encode(err)
 }
 
 [inline]
-fn emit_parse_error() {
-	emit_error(jsonrpc.parse_error)
+fn parse_error_message() string {
+	return error_message(jsonrpc.parse_error)
 }
 
 [inline]
 fn show_message(typ lsp.MessageType, message string) {
-	respond(json.encode(JrpcNotification<lsp.ShowMessageParams>{
+	send(json.encode(JrpcNotification<lsp.ShowMessageParams>{
 		method: 'window/showMessage'
 		params: lsp.ShowMessageParams{typ, message}
 	}))
@@ -85,7 +91,7 @@ fn show_message(typ lsp.MessageType, message string) {
 
 [inline]
 fn log_message(typ lsp.MessageType, message string) {
-	respond(json.encode(JrpcNotification<lsp.LogMessageParams>{
+	send(json.encode(JrpcNotification<lsp.LogMessageParams>{
 		method: 'window/logMessage'
 		params: lsp.LogMessageParams{typ, message}
 	}))
@@ -93,7 +99,7 @@ fn log_message(typ lsp.MessageType, message string) {
 
 [inline]
 fn show_message_request(typ lsp.MessageType, message string, actions []lsp.MessageActionItem) {
-	respond(json.encode(JrpcNotification<lsp.ShowMessageRequestParams>{
+	send(json.encode(JrpcNotification<lsp.ShowMessageRequestParams>{
 		method: 'window/showMessage'
 		params: lsp.ShowMessageRequestParams{typ, message, actions}
 	}))
@@ -101,7 +107,7 @@ fn show_message_request(typ lsp.MessageType, message string, actions []lsp.Messa
 
 [inline]
 fn telemetry<T>(data T) {
-	respond(json.encode(JrpcNotification<T>{
+	send(json.encode(JrpcNotification<T>{
 		method: 'telemetry/event'
 		params: data
 	}))
@@ -109,7 +115,7 @@ fn telemetry<T>(data T) {
 
 [inline]
 fn cancel_request(id int) {
-	respond(json.encode(JrpcNotification<lsp.CancelParams>{
+	send(json.encode(JrpcNotification<lsp.CancelParams>{
 		method: '$/cancelRequest'
 		params: lsp.CancelParams{
 			id: id

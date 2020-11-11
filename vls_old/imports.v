@@ -1,9 +1,8 @@
-module main
+module vls_old
 
 import v.ast
 import v.errors
 import v.doc
-import os
 
 // FIXME:
 

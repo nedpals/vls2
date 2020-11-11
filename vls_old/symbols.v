@@ -1,4 +1,4 @@
-module main
+module vls_old
 
 import lsp
 import v.doc
@@ -55,16 +55,16 @@ fn (mut vls Vls) workspace_symbol(id int, raw string) {
 	for _, prj in vls.projects {
 		symbols << prj.cached_symbols
 	}
-	respond(json.encode(JrpcResponse<[]lsp.SymbolInformation>{
+	return result_message(JrpcResponse<[]lsp.SymbolInformation>{
 		id: id
 		result: symbols
-	}))
+	})
 }
 
 // textDocument/documentSymbol
-fn (mut vls Vls) document_symbol(id int, raw string) {
+fn (mut vls Vls) document_symbol(id int, raw string) string {
 	params := json.decode(lsp.DocumentSymbolParams, raw) or {
-		emit_parse_error()
+		emit_parse_error_message()
 		return
 	}
 	fspath := uri_str_to_fspath(params.text_document.uri) or {
@@ -72,8 +72,8 @@ fn (mut vls Vls) document_symbol(id int, raw string) {
 		return
 	}
 	dir, _ := get_project_path(fspath)
-	respond(json.encode(JrpcResponse<[]lsp.SymbolInformation>{
+	return result_message(JrpcResponse<[]lsp.SymbolInformation>{
 		id: id
 		result: vls.projects[dir].cached_symbols
-	}))
+	})
 }

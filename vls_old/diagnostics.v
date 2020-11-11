@@ -1,8 +1,9 @@
-module main
-
+module vls_old
+/*
 import json
 import lsp
 import v.errors
+
 
 fn diagnose_warning(file_path string, source string, w errors.Warning) lsp.Diagnostic {
 	w_range := to_range(source, w.pos)
@@ -43,7 +44,7 @@ fn diagnose_error(file_path string, source string, e errors.Error) lsp.Diagnosti
 
 // textDocument/publishDiagnostics
 // notification
-fn (mut vls Vls) publish_diagnostics(file_path string) {
+fn (mut vls Vls) publish_diagnostics(file_path string) string {
 	mut diag := []lsp.Diagnostic{}
 	dir, name := get_project_path(file_path)
 	file := vls.asts[dir][name]
@@ -61,13 +62,14 @@ fn (mut vls Vls) publish_diagnostics(file_path string) {
 			diagnostics: diag
 		}
 	}
-	respond(json.encode(result))
+	resp := result_message(result)
 	unsafe {
 		diag.free()
 	}
+	return resp
 }
 
-fn (mut vls Vls) clear_diagnostics(file_path string) {
+fn (mut vls Vls) clear_diagnostics(file_path string) string {
 	result := JrpcNotification<lsp.PublishDiagnosticsParams>{
 		method: 'textDocument/publishDiagnostics'
 		params: lsp.PublishDiagnosticsParams{
@@ -76,5 +78,5 @@ fn (mut vls Vls) clear_diagnostics(file_path string) {
 		}
 	}
 
-	respond(json.encode(result))
-}
+	return result_message(result)
+}*/

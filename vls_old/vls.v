@@ -1,8 +1,7 @@
-module main
+module vls_old
 
 import os
 import lsp
-import strings
 import jsonrpc
 import json
 // import x.json2
@@ -29,7 +28,7 @@ const (
 	}
 )
 
-struct Vls {
+pub struct Vls {
 mut:
 	log_requests bool
 	table &table.Table = table.new_table()
@@ -87,51 +86,50 @@ fn (mut vls Vls) shutdown() {
 		vls.mod_docs.free()
 	}
 	// move exit to shutdown for now
-	show_message(.log, 'Goodbye!')
 	exit(int(vls.status != .shutdown))
 }
 
-fn (mut vls Vls) initialize(id int, raw string) {
+fn (mut vls Vls) initialize(id int, raw string) string {
 	// init := json2.raw_decode(raw) or {
 	// 	emit_parse_error()
 	// 	return
 	// }
 	// TODO: focus on capabilities for now
-	mut server_capabilities := lsp.ServerCapabilities{
+	mut capabilities := lsp.ServerCapabilities{
 		text_document_sync: 1
 		// hover_provider: true
 		workspace_symbol_provider: true
 		document_symbol_provider: true
+		completion_provider: lsp.CompletionOptions{
+			resolve_provider: false
+		}
 	}
 
-	server_capabilities.completion_provider.resolve_provider = false
 	// TODO:
 	// server_capabilities.signature_help_provider.trigger_characters = ['(', '{']
 	// server_capabilities.signature_help_provider.trigger_characters = [',']
-
-	respond(json.encode(JrpcResponse<lsp.InitializeResult>{
+	result := JrpcResponse<lsp.InitializeResult>{
 		id: id,
 		result: lsp.InitializeResult{
-			capabilities: server_capabilities
+			capabilities: capabilities
 		}
-	}))
+	}
+	return result_message(result)
 }
 
-fn (mut vls Vls) execute(payload string) {
+pub fn (mut vls Vls) execute(payload string) ?string {
 	request := json.decode(jsonrpc.Request, payload) or {
-		emit_parse_error()
-		exit(1)
+		return parse_error_message()
 	}
 	if vls.log_requests {
 		log_contents := os.read_file(log_file) or { '' }
 		os.write_file(log_file, log_contents + payload + '\n')
 	}
 	if request.method != 'exit' && vls.status == .shutdown {
-		emit_error(jsonrpc.invalid_request)
-		return
+		return error_message(jsonrpc.invalid_request)
 	}
 	match request.method {
-		'initialize' { vls.initialize(request.id, request.params) }
+		'initialize' { return vls.initialize(request.id, request.params) }
 		'initialized' { vls.status = .initializing }
 		'shutdown' { vls.shutdown() }
 		'exit' { /* ignore */ }
@@ -142,44 +140,13 @@ fn (mut vls Vls) execute(payload string) {
 		'textDocument/didSave' { vls.save_file(request.params) }
 		'textDocument/didClose' { vls.close_file(request.params) }
 		'textDocument/documentSymbol' { vls.document_symbol(request.id, request.params) }
-		'textDocument/completion' { vls.completion(request.id, request.params) }
+		// 'textDocument/completion' { vls.completion(request.id, request.params) }
 		'textDocument/hover' { vls.hover(request.id, request.params) }
 		// 'textDocument/signatureHelp' { vls.signature_help(request.id, request.params) }
 		else {
 			if vls.status != .initialized {
-				emit_error(jsonrpc.server_not_initialized)
+				return error_message(jsonrpc.server_not_initialized)
 			}
-			return
 		}
 	}
-}
-
-fn (mut vls Vls) start_loop() {
-	for {
-		first_line := get_raw_input()
-		if first_line.len < 1 || !first_line.starts_with(content_length) {
-			continue
-		}
-		mut buf := strings.new_builder(1)
-		mut conlen := first_line[content_length.len..].int()
-		$if !windows { conlen++ }
-		for conlen > 0 {
-			c := C.fgetc(C.stdin)
-			$if !windows {
-				if c == 10 { continue }
-			}
-			buf.write_b(byte(c))
-			conlen--
-		}
-		payload := buf.str()
-		vls.execute(payload[1..])
-		unsafe { buf.free() }
-	}
-}
-
-fn main() {
-	mut vls := Vls{}
-	vls.log_requests = os.getenv('VLS_LOG') == '1' || '-log' in os.args
-	vls.log_requests = true
-	vls.start_loop()
 }

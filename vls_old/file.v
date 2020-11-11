@@ -1,4 +1,4 @@
-module main
+module vls_old
 
 import json
 import jsonrpc
@@ -11,10 +11,9 @@ import v.scanner
 import v.util
 import time
 
-fn (mut vls Vls) insert_file(uri string, text string, update bool) {
+fn (mut vls Vls) insert_file(uri string, text string, update bool) string {
 	doc_uri := fspath_to_uri(uri) or {
-		emit_error(jsonrpc.invalid_request)
-		return
+		return error_message(jsonrpc.invalid_request)
 	}
 	project_dir, opened_filename := get_project_path(doc_uri.path)
 	if project_dir !in vls.docs {
@@ -24,8 +23,7 @@ fn (mut vls Vls) insert_file(uri string, text string, update bool) {
 	mut project_file_paths := [doc_uri.path]
 	if !update {
 		project_files := os.ls(project_dir) or {
-			emit_error(jsonrpc.invalid_request)
-			return
+			return error_message(jsonrpc.invalid_request)
 		}
 		project_file_paths = vls_prefs.should_compile_filtered_files(project_dir, project_files)
 	}
@@ -105,10 +103,9 @@ fn (mut vls Vls) insert_file(uri string, text string, update bool) {
 }
 
 // textDocument/didOpen
-fn (mut vls Vls) open_file(raw string) {
+fn (mut vls Vls) open_file(raw string) string {
 	doc := json.decode(lsp.DidOpenTextDocumentParams, raw) or {
-		emit_parse_error()
-		return
+		return parse_error_message()
 	}
 	vls.insert_file(doc.text_document.uri, doc.text_document.text, false)
 	unsafe {

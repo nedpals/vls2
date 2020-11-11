@@ -1,6 +1,5 @@
-module main
+module vls_old
 
-import json
 import lsp
 import v.doc
 
@@ -55,11 +54,11 @@ fn completion_items(doc_nodes []doc.DocNode) []lsp.CompletionItem {
 	return items
 }
 
-fn (mut vls Vls) completion(id int, raw string) {
+/*
+fn (mut vls Vls) completion(id int, raw string) string {
 	// use position for now
 	params := json.decode(lsp.CompletionParams, raw) or {
-		emit_parse_error()
-		return
+		return parse_error()
 	}
 	// ctx := params.context
 	pos := params.position
@@ -105,8 +104,9 @@ fn (mut vls Vls) completion(id int, raw string) {
 		items = vls.projects[dir].cached_completion
 	}
 
-	respond(json.encode(JrpcResponse<[]lsp.CompletionItem>{
+	result := JrpcResponse<[]lsp.CompletionItem>{
 		id: id
 		result: items
-	}))
-}
+	}
+	return result_message(result)
+}*/

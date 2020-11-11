@@ -1,4 +1,4 @@
-module main
+module vls_old
 
 import json
 import lsp
@@ -21,9 +21,9 @@ fn (vls Vls) search_token(line int, col int, fs_path string) ?(token.Token, doc.
 	return error('token not found')
 }
 
-fn (mut vls Vls) hover(id int, raw string) {
+fn (mut vls Vls) hover(id int, raw string) string {
 	params := json.decode(lsp.HoverParams, raw) or {
-		emit_parse_error()
+		emit_parse_error_message()
 		return
 	}
 	fs_path := uri_str_to_fspath(params.text_document.uri) or {
@@ -39,17 +39,17 @@ fn (mut vls Vls) hover(id int, raw string) {
 	}
 	// found_ast, doc_pos := vls.get_ast_by_pos(tok_doc_pos.line-1, tok_doc_pos.col+tok_doc_pos.len, fs_path, file_ast.stmts.map(AstNode(it))) or {
 	// 	if tok.lit.len > 0 {
-			range := doc_pos_to_lsp_range(tok_doc_pos)
-			respond(json.encode(JrpcResponse<lsp.Hover>{
-				id: id
-				result: lsp.Hover{
-					contents: lsp.MarkedString{
-						language: 'v'
-						value: tok.lit
-					}
-					range: range
-				}
-			}))
+	range := doc_pos_to_lsp_range(tok_doc_pos)
+	return result_message(JrpcResponse<lsp.Hover>{
+		id: id
+		result: lsp.Hover{
+			contents: lsp.MarkedString{
+				language: 'v'
+				value: tok.lit
+			}
+			range: range
+		}
+	})
 	// 	} else {
 	// 		cancel_request(id)
 	// 	}
