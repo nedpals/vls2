@@ -83,3 +83,40 @@ fn (mut vls Vls) close_file(id int, raw string) {
 	}
 	vls.clear_diagnostics(doc_uri.path)
 }
+
+// workspace/didChangeWatchedFiles
+fn (mut vls Vls) did_change_watched_files(raw string) {
+	params := json.decode(lsp.DidChangeWatchedFilesParams, raw) or {
+		emit_parse_error()
+		return
+	}
+
+	for changed_file in params.changes {
+		state := lsp.FileChangeType(changed_file.@type)
+		match state {
+			.created {
+				fs_path := uri_str_to_fspath(changed_file.uri) or { '' }
+				content := os.read_file(fs_path) or { '' }
+				raw_payload := json.encode(lsp.DidOpenTextDocumentParams{
+					text_document: lsp.TextDocumentItem{
+						uri: changed_file.uri
+						language_id: 'v'
+						version: 1
+						text: content
+					}
+				})
+				vls.open_file(raw_payload)
+			}
+			.deleted {
+				raw_payload := json.encode(lsp.DidCloseTextDocumentParams{
+					text_document: lsp.TextDocumentIdentifier{
+						uri: changed_file.uri
+					}
+				})
+				vls.close_file(raw_payload)
+			}
+			.changed { continue }
+		}
+	}
+}
+
