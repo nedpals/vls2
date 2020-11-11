@@ -2,7 +2,7 @@ module lsp
 
 pub struct TextDocumentSyncOptions {
 	open_close bool [json:openClose]
-	change int
+	change int = int(TextDocumentSyncKind.none_)
 	will_save bool [json:willSave]
 	will_save_wait_until bool [json:willSaveWaitUntil]
 	save SaveOptions
@@ -22,11 +22,13 @@ pub:
 // method: ‘textDocument/didChange’
 // notification
 pub struct DidChangeTextDocumentParams {
+pub:
 	text_document VersionedTextDocumentIdentifier [json:textDocument]
 	content_changes []TextDocumentContentChangeEvent [json:contentChanges]
 }
 
 pub struct TextDocumentContentChangeEvent {
+pub:
 	// range Range
 	// range_length int [json:rangeLength]
 	text string

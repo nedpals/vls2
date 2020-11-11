@@ -35,6 +35,7 @@ pub:
 }
 
 pub struct VersionedTextDocumentIdentifier {
+pub:
 	uri string
 	version int
 }
@@ -51,12 +52,13 @@ pub struct LocationLink {
 	target_selection_range Range [json:targetSelectionRange]
 }
 
-pub struct TextDocumentContentChangeEvent {
-	range Range
-	text string
-}
+// pub struct TextDocumentContentChangeEvent {
+// 	range Range
+// 	text string
+// }
 
 pub struct TextDocumentPositionParams {
+pub:
 	text_document TextDocumentIdentifier [json:textDocument]
 	position Position
 }

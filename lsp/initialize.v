@@ -55,7 +55,7 @@ pub enum FailureHandlingKind {
 
 // TextDocumentSyncKind
 pub enum TextDocumentSyncKind {
-	@none = 0
+	none_ = 0
 	full = 1
 	incremental = 2
 }
