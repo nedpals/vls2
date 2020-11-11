@@ -3,12 +3,13 @@ module main
 import v.ast
 import v.errors
 import v.doc
+import os
 
 // FIXME:
 
 // IMPORT GRAPH
-// vls.import_graph will keep track of the list of modules as dependencies 
-// used by the respective files (or text documents in LSP terms). Once 
+// vls.import_graph will keep track of the list of modules as dependencies
+// used by the respective files (or text documents in LSP terms). Once
 // there is no file left that is dependent to a specific module, the module
 // will be removed safely into the language server.
 fn (mut vls Vls) process_mod_imports(mut file_ast ast.File) {
@@ -17,7 +18,6 @@ fn (mut vls Vls) process_mod_imports(mut file_ast ast.File) {
 	if 'builtin' !in vls.import_graph {
 		imports << 'builtin'
 	}
-
 	for idx, imprt in imports {
 		if file_ast.path in vls.import_graph[imprt] {
 			continue

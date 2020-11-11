@@ -36,7 +36,7 @@ fn (mut vls Vls) insert_file(uri string, text string, update bool) {
 		}
 		mut raw_text := if text.len == 0 {
 			vls.docs[project_dir].sources[filename]
-		} else { 
+		} else {
 			text
 		}
 		if filename != opened_filename {
@@ -54,6 +54,9 @@ fn (mut vls Vls) insert_file(uri string, text string, update bool) {
 				pref: vls_prefs
 				scope: scope
 				global_scope: global_scope
+				file_base: filename
+				file_name: file
+				file_name_dir: project_dir
 			}
 
 			mut file_ast := p.parse()
@@ -90,7 +93,7 @@ fn (mut vls Vls) insert_file(uri string, text string, update bool) {
 		}
 		time.sleep_ms(10)
 	}
-	
+
 	if !update {
 		vls.import_modules()
 		vls.document_project(mut vls.projects[project_dir])
@@ -205,8 +208,8 @@ fn (mut vls Vls) document_project(mut prj Project) {
 		return
 	}
 	contents := vls.docs[prj.path].contents.arr()
-	vls.projects[prj.path].insert('', { 
-		symbols: provide_symbols(contents) 
+	vls.projects[prj.path].insert('', {
+		symbols: provide_symbols(contents)
 	})
 	// show_message(.info, vls.projects[prj.path].cached_symbols.len.str())
 	unsafe {

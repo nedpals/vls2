@@ -18,7 +18,7 @@ import v.checker
 
 const (
 	log_file = os.resource_abs_path('output.txt')
-	vls_prefs = &pref.Preferences{ 
+	vls_prefs = &pref.Preferences{
 		output_mode: .silent
 		enable_globals: true
 	}
@@ -60,7 +60,7 @@ fn (mut vls Vls) new_project(project_dir string) {
 		cached_completion: []lsp.CompletionItem{}
 		nr_errors: 0
 	}
-	vls.docs[project_dir] = doc.Doc{ 
+	vls.docs[project_dir] = doc.Doc{
 		base_path: project_dir
 		prefs: vls_prefs
 		pub_only: false
@@ -180,5 +180,6 @@ fn (mut vls Vls) start_loop() {
 fn main() {
 	mut vls := Vls{}
 	vls.log_requests = os.getenv('VLS_LOG') == '1' || '-log' in os.args
+	vls.log_requests = true
 	vls.start_loop()
 }

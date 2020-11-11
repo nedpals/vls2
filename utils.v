@@ -69,7 +69,7 @@ fn (vls Vls) compute_offset(fs_path string, line int, col int) int {
 	for i, ln in lines {
 		if i == line {
 			if col > ln.len {
-				return -1	
+				return -1
 			}
 			if ln.len == 0 {
 				offset++
@@ -98,7 +98,7 @@ fn doc_pos_to_lsp_loc(file_path string, dp doc.DocPos) lsp.Location {
 }
 
 fn doc_pos_to_lsp_range(dp doc.DocPos) lsp.Range {
-	start_pos := lsp.Position{ 
+	start_pos := lsp.Position{
 		line: dp.line
 		character: dp.col-1
 	}
