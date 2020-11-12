@@ -31,28 +31,28 @@ pub mut:
 }
 
 pub fn (mut ls Vls) execute(payload string) {
-	request_message := json.decode(jsonrpc.RequestMessage, payload) or {
+	request := json.decode(jsonrpc.Request, payload) or {
 		ls.send(new_error(jsonrpc.parse_error))
 		return
 	}
-	if request_message.method != 'exit' && ls.status == .shutdown {
+	if request.method != 'exit' && ls.status == .shutdown {
 		ls.send(new_error(jsonrpc.invalid_request))
 		return
 	}
-	if request_message.method != 'initialize' && ls.status != .initialized {
+	if request.method != 'initialize' && ls.status != .initialized {
 		ls.send(new_error(jsonrpc.server_not_initialized))
 		return
 	}
-	match request_message.method {
+	match request.method {
 		'initialize' {
-			ls.initialize(request_message.id, request_message.params)
+			ls.initialize(request.id, request.params)
 		}
 		'initialized' {} // does nothing currently
 		'shutdown' {
-			ls.shutdown(request_message.params)
+			ls.shutdown(request.params)
 		}
 		'exit' {
-			ls.exit(request_message.params)
+			ls.exit(request.params)
 		}
 		else {
 			if ls.status != .initialized {

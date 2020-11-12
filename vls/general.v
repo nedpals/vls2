@@ -20,7 +20,7 @@ fn (mut ls Vls) initialize(id int, params string) {
 			resolve_provider: false
 		}
 	}
-	// TODO: use jsonrpc.ResponseMessage
+	// TODO: use jsonrpc.Response
 	result := JrpcResponse<lsp.InitializeResult>{
 		id: id
 		result: lsp.InitializeResult{
