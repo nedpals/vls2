@@ -13,7 +13,7 @@ pub const (
 	unknown_error          = -32001
 )
 
-pub struct Request {
+pub struct RequestMessage {
 pub mut:
 	jsonrpc string = version
 	id      int
@@ -21,13 +21,19 @@ pub mut:
 	params  string [raw]
 }
 
-pub struct Response <T> {
+pub struct ResponseMessage <T> {
 pub:
 	jsonrpc string = version
 	id      int
 	error   ResponseError
 	result  T
 }
+
+/*pub struct NotificationMessage <T> {
+	jsonrpc string = version
+	method  string
+	params  string [raw]
+}*/
 
 struct ResponseError {
 mut:

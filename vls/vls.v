@@ -15,7 +15,7 @@ const (
 pub struct Vls {
 mut:
 	table            &table.Table = table.new_table()
-	status           ServerStatus = .initializing
+	status           ServerStatus = .off
 	// imports
 	import_graph     map[string][]string
 	mod_import_paths map[string]string
@@ -31,25 +31,28 @@ mut:
 type SendFn = fn ( string)
 
 pub fn (mut ls Vls) execute(payload string, send SendFn) {
-	request := json.decode(jsonrpc.Request, payload) or {
+	request_message := json.decode(jsonrpc.RequestMessage, payload) or {
 		send(new_error(jsonrpc.parse_error))
 		return
 	}
-	if request.method != 'exit' && ls.status == .shutdown {
+	if request_message.method != 'exit' && ls.status == .shutdown {
 		send(new_error(jsonrpc.invalid_request))
+		return
 	}
-	match request.method {
+	if request_message.method != 'initialize' && ls.status != .initialized {
+		send(new_error(jsonrpc.server_not_initialized))
+		return
+	}
+	match request_message.method {
 		'initialize' {
-			ls.initialize(request.id, request.params, send)
+			ls.initialize(request_message.id, request_message.params, send)
 		}
-		'initialized' {
-			ls.status = .initialized
-		}
+		'initialized' {} // does nothing currently
 		'shutdown' {
-			ls.shutdown(request.id, request.params, send)
+			ls.shutdown(request_message.params)
 		}
 		'exit' {
-			ls.exit(request.id, request.params, send)
+			ls.exit(request_message.params)
 		}
 		else {
 			if ls.status != .initialized {
@@ -108,7 +111,23 @@ fn get_raw_input() string {
 }
 
 pub enum ServerStatus {
-	initializing
+	off
 	initialized
 	shutdown
+}
+
+// with error
+struct JrpcResponse2<T> {
+	jsonrpc string = jsonrpc.version
+	id int
+	error jsonrpc.ResponseError
+	result T
+}
+
+[inline]
+fn new_error(code int) string {
+	err := JrpcResponse2<string>{
+		error: jsonrpc.new_response_error(code)
+	}
+	return json.encode(err)
 }

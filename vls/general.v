@@ -1,8 +1,8 @@
 module vls
 
 import lsp
-import jsonrpc
 import json
+import jsonrpc
 
 struct JrpcResponse <T> {
 	jsonrpc string = jsonrpc.version
@@ -11,7 +11,7 @@ struct JrpcResponse <T> {
 }
 
 // initialize sends the server capabilities to the client
-fn (ls Vls) initialize(id int, params string, send SendFn) {
+fn (mut ls Vls) initialize(id int, params string, send SendFn) {
 	mut capabilities := lsp.ServerCapabilities{
 		text_document_sync: 1
 		workspace_symbol_provider: true
@@ -20,17 +20,19 @@ fn (ls Vls) initialize(id int, params string, send SendFn) {
 			resolve_provider: false
 		}
 	}
+	// TODO: use jsonrpc.ResponseMessage
 	result := JrpcResponse<lsp.InitializeResult>{
 		id: id
 		result: lsp.InitializeResult{
 			capabilities: capabilities
 		}
 	}
+	ls.status = .initialized
 	send(json.encode(result))
 }
 
 // shutdown sets the state to shutdown but does not exit
-fn (mut ls Vls) shutdown(id int, params string, send SendFn) {
+fn (mut ls Vls) shutdown(params string) {
 	ls.status = .shutdown
 	unsafe {
 		// ls.projects.free()
@@ -41,7 +43,7 @@ fn (mut ls Vls) shutdown(id int, params string, send SendFn) {
 }
 
 // exit stops the process
-fn (ls Vls) exit(id int, params string, send SendFn) {
+fn (ls Vls) exit(params string) {
 	// move exit to shutdown for now
 	// == .shutdown => 0
 	// != .shutdown => 1
