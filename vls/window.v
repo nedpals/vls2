@@ -10,10 +10,23 @@ struct JrpcNotification <T> {
 	params  T
 }
 
+// log_message sends a window/logMessage notification to the client
 fn (ls Vls) log_message(message string, typ lsp.MessageType) {
 	result := JrpcNotification<lsp.LogMessageParams>{
 		method: 'window/logMessage'
 		params: lsp.LogMessageParams{
+			@type: typ
+			message: message
+		}
+	}
+	ls.send(json.encode(result))
+}
+
+// show_message sends a window/showMessage notification to the client
+fn (ls Vls) show_message(message string, typ lsp.MessageType) {
+	result := JrpcNotification<lsp.ShowMessageParams>{
+		method: 'window/showMessage'
+		params: lsp.ShowMessageParams{
 			@type: typ
 			message: message
 		}
