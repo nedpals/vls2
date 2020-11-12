@@ -11,7 +11,7 @@ struct JrpcResponse <T> {
 }
 
 // initialize sends the server capabilities to the client
-fn (mut ls Vls) initialize(id int, params string, send SendFn) {
+fn (mut ls Vls) initialize(id int, params string) {
 	mut capabilities := lsp.ServerCapabilities{
 		text_document_sync: 1
 		workspace_symbol_provider: true
@@ -28,7 +28,7 @@ fn (mut ls Vls) initialize(id int, params string, send SendFn) {
 		}
 	}
 	ls.status = .initialized
-	send(json.encode(result))
+	ls.send(json.encode(result))
 }
 
 // shutdown sets the state to shutdown but does not exit

@@ -26,26 +26,26 @@ mut:
 	tokens           map[string]map[string][]token.Token
 	asts             map[string]map[string]ast.File
 	current_file     string
+pub mut:
+	send             fn (string) = fn (res string) {}
 }
 
-type SendFn = fn ( string)
-
-pub fn (mut ls Vls) execute(payload string, send SendFn) {
+pub fn (mut ls Vls) execute(payload string) {
 	request_message := json.decode(jsonrpc.RequestMessage, payload) or {
-		send(new_error(jsonrpc.parse_error))
+		ls.send(new_error(jsonrpc.parse_error))
 		return
 	}
 	if request_message.method != 'exit' && ls.status == .shutdown {
-		send(new_error(jsonrpc.invalid_request))
+		ls.send(new_error(jsonrpc.invalid_request))
 		return
 	}
 	if request_message.method != 'initialize' && ls.status != .initialized {
-		send(new_error(jsonrpc.server_not_initialized))
+		ls.send(new_error(jsonrpc.server_not_initialized))
 		return
 	}
 	match request_message.method {
 		'initialize' {
-			ls.initialize(request_message.id, request_message.params, send)
+			ls.initialize(request_message.id, request_message.params)
 		}
 		'initialized' {} // does nothing currently
 		'shutdown' {
@@ -56,7 +56,7 @@ pub fn (mut ls Vls) execute(payload string, send SendFn) {
 		}
 		else {
 			if ls.status != .initialized {
-				send(new_error(jsonrpc.server_not_initialized))
+				ls.send(new_error(jsonrpc.server_not_initialized))
 			}
 		}
 	}
@@ -88,10 +88,7 @@ pub fn (mut ls Vls) start_loop() {
 			conlen--
 		}
 		payload := buf.str()
-		ls.execute(payload[1..], fn (res string) {
-			// print to stdout
-			print(res)
-		})
+		ls.execute(payload[1..])
 		unsafe { buf.free() }
 	}
 }
