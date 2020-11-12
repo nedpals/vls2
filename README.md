@@ -34,8 +34,8 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [x] `initialized`
 - [x] `shutdown`
 - [x] `exit`
-- [x] `$/cancelRequest`
-- [ ] `$/progress`
+- [ ] `$/cancelRequest`
+<!-- - [ ] `$/progress` -->
 ### Window
 - [x] `showMessage`
 - [x] `showMessageRequest`
@@ -43,7 +43,7 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [ ] `progress/create`
 - [ ] `progress/cancel`
 ### Telemetry
-- [x] `event` (Implemented but not usable)
+- [ ] `event` (Implemented but not usable)
 ### Client
 - [ ] `registerCapability`
 - [ ] `unregisterCapability`
@@ -52,23 +52,23 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [ ] `didChangeWorkspaceFolder`
 - [ ] `didChangeConfiguration`
 - [ ] `configuration`
-- [x] `didChangeWatchedFiles`
-- [x] `symbol` (initial support)
+- [ ] `didChangeWatchedFiles`
+- [ ] `symbol` (initial support)
 - [ ] `executeCommand`
 - [ ] `applyEdit`
 ### Text Synchronization
-- [x] `didOpen`
+- [ ] `didOpen`
 - [ ] `didChange`
 - [ ] `willSave`
 - [ ] `willSaveWaitUntil`
-- [x] `didSave`
-- [x] `didClose`
+- [ ] `didSave`
+- [ ] `didClose`
 ### Diagnostics
-- [x] `publishDiagnostics` (initial support)
+- [ ] `publishDiagnostics` (initial support)
 ### Language Features
-- [x] `completion` (disabled for now)
+- [ ] `completion` (disabled for now)
 - [ ] `completion resolve`
-- [x] `hover` (disabled for now)
+- [ ] `hover` (disabled for now)
 - [ ] `signatureHelp`
 - [ ] `declaration`
 - [ ] `definition`
@@ -76,7 +76,7 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [ ] `implementation`
 - [ ] `references`
 - [ ] `documentHighlight`
-- [x] `documentSymbol` (initial support)
+- [ ] `documentSymbol` (initial support)
 - [ ] `codeAction`
 - [ ] `codeLens`
 - [ ] `codeLens resolve`
@@ -90,7 +90,7 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 - [ ] `rename`
 - [ ] `prepareRename`
 - [ ] `foldingRange`
-    
+
 # Contributing
 ## Submitting a pull request
 - Fork it (https://github.com/nedpals/vls2/fork)
@@ -101,3 +101,4 @@ Afterwards, go to your editor's configuration and scroll to the V extension sect
 
 # Contributors
 - [nedpals](https://github.com/nedpals) - creator and maintainer
+- [danieldaeschle](https://github.com/danieldaeschle) - maintainer
