@@ -33,3 +33,15 @@ fn (ls Vls) show_message(message string, typ lsp.MessageType) {
 	}
 	ls.send(json.encode(result))
 }
+
+fn (ls Vls) show_message_request(message string, actions []lsp.MessageActionItem, typ lsp.MessageType) {
+	result := JrpcNotification<lsp.ShowMessageRequestParams>{
+		method: 'window/showMessageRequest'
+		params: lsp.ShowMessageRequestParams{
+			@type: typ
+			message: message
+			actions: actions
+		}
+	}
+	ls.send(json.encode(result))
+}

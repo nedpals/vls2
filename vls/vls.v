@@ -27,6 +27,7 @@ mut:
 	asts             map[string]map[string]ast.File
 	current_file     string
 pub mut:
+	// TODO: replace with io.Writer
 	send             fn (string) = fn (res string) {}
 }
 

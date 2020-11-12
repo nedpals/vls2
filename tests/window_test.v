@@ -18,3 +18,13 @@ fn test_show_message() {
 	}
 	ls.show_message('Hello World!', .info)
 }
+
+fn test_show_message_request() {
+	ls := vls.Vls{
+		send: fn (res string) {
+			assert res == '{"jsonrpc":"2.0","method":"window/showMessageRequest","params":{"type":3,"message":"Failed!","actions":[{"title":"Retry"}]}}'
+		}
+	}
+	mut actions := [lsp.MessageActionItem{'Retry'}]
+	ls.show_message_request('Failed!', actions, .info)
+}
