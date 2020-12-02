@@ -4,14 +4,9 @@ import lsp
 import json
 import jsonrpc
 
-struct JrpcResponse <T> {
-	jsonrpc string = jsonrpc.version
-	id      int
-	result  T
-}
-
 // initialize sends the server capabilities to the client
 fn (mut ls Vls) initialize(id int, params string) {
+	initialize_params := json.decode(lsp.InitializeParams, params) or { panic(err) }
 	mut capabilities := lsp.ServerCapabilities{
 		text_document_sync: 1
 		workspace_symbol_provider: true
@@ -20,13 +15,14 @@ fn (mut ls Vls) initialize(id int, params string) {
 			resolve_provider: false
 		}
 	}
-	// TODO: use jsonrpc.Response
-	result := JrpcResponse<lsp.InitializeResult>{
+	result := jsonrpc.Response<lsp.InitializeResult>{
 		id: id
 		result: lsp.InitializeResult{
 			capabilities: capabilities
 		}
 	}
+	// only files are supported right now
+	ls.root_path = initialize_params.root_uri.trim_prefix('file://')
 	ls.status = .initialized
 	ls.send(json.encode(result))
 }

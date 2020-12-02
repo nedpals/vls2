@@ -26,6 +26,7 @@ mut:
 	tokens           map[string]map[string][]token.Token
 	asts             map[string]map[string]ast.File
 	current_file     string
+	root_path        string
 pub mut:
 	// TODO: replace with io.Writer
 	send             fn (string) = fn (res string) {}
@@ -54,6 +55,12 @@ pub fn (mut ls Vls) execute(payload string) {
 		}
 		'exit' {
 			ls.exit(request.params)
+		}
+		'textDocument/didOpen' {
+			ls.did_open(request.id, request.params)
+		}
+		'textDocument/didChange' {
+			ls.did_change(request.id, request.params)
 		}
 		else {
 			if ls.status != .initialized {
