@@ -4,9 +4,9 @@ import vls
 
 fn main() {
 	mut ls := vls.Vls{
-		send: fn (res string) {
+		send: fn (data string) {
 			// print to stdout
-			print(res)
+			print('Content-Length: ${data.len}\r\n\r\n$data')
 		}
 		// logging: os.getenv('VLS_LOG') == '1' || '-log' in os.args
 	}

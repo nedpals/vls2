@@ -7,8 +7,13 @@ import v.token
 
 fn position_to_range(source string, pos token.Position) lsp.Range {
 	before := source[..pos.pos]
-	end_pos := pos.pos + pos.len
-	part := source[pos.pos..end_pos]
+	mut end_pos := pos.pos + pos.len
+	part := if source.len > end_pos {
+		source[pos.pos..end_pos]
+	} else {
+		// eof error
+		''
+	}
 	start_char := before.all_after_last('\n').len
 	after_last_nl := part.all_after_last('\n')
 	end_line := pos.line_nr + part.count('\n')
