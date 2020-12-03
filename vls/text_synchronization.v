@@ -50,12 +50,21 @@ fn (ls Vls) show_diagnostics(source string, uri string) {
 	table := table.new_table()
 	mut builtin_files := os.ls(builtin_path) or { panic(err) }
 	files_to_parse := pref.should_compile_filtered_files(builtin_path, builtin_files)
-	mut parsed_files := parser.parse_files(files_to_parse, table, &pref, &scope)
+	mut parsed_files := []ast.File{}
 	parsed_files << parser.parse_text(source, file_path, table, .skip_comments, &pref, &scope)
+	parsed_files << parser.parse_files(files_to_parse, table, &pref, &scope)
 	parsed_files << ls.parse_imports(parsed_files, table, &pref, &scope)
-	ls.log_message('parsed imports, files: $parsed_files.len', .info)
-	mut checker := checker.new_checker(table, &pref)
-	checker.check_files(parsed_files)
+	mut parsing_errors := false
+	for f in parsed_files {
+		if f.errors.len > 0 {
+			parsing_errors = true
+			break
+		}
+	}
+	if !parsing_errors {
+		mut checker := checker.new_checker(table, &pref)
+		checker.check_files(parsed_files)
+	}
 	mut diagnostics := []lsp.Diagnostic{}
 	for _, file in parsed_files {
 		if uri.ends_with(file.path) {
