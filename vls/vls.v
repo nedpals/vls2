@@ -7,6 +7,8 @@ import v.ast
 import json
 import jsonrpc
 import strings
+import net
+import io
 
 const (
 	content_length = 'Content-Length: '
@@ -32,6 +34,7 @@ mut:
 	current_file     string
 	root_path        string
 	connection_type  ConnectionType = .stdio
+	tcp_conn				 &net.TcpConn = 0
 pub mut:
 	// TODO: replace with io.Writer
 	// send             fn (string) = fn (res string) {}
@@ -77,15 +80,45 @@ pub fn (mut ls Vls) execute(payload string) string {
 	return ''
 }
 
-// status returns the current server status
-pub fn (ls Vls) status() ServerStatus {
-	return ls.status
-}
-
 fn C.fgetc(stream byteptr) int
 
-// start_loop starts an endless loop which waits for stdin and prints responses to the stdout
-pub fn (mut ls Vls) start_loop() {
+// start_server starts an endless loop which waits for the request data and prints the responses to the desired connection type
+pub fn (mut ls Vls) start_server() {
+	if ls.connection_type == .tcp {
+		// TODO: custom TCP port
+		server := net.listen_tcp(6220) or { panic(err) }
+
+		for {
+			mut conn := server.accept() or {
+				server.close() or { }
+				panic(err)
+			}
+
+			vls.tcp_conn = &conn
+
+			mut reader := io.new_buffered_reader(reader: io.make_reader(con))
+			first_line := reader.read_line() or {
+				ls.send(new_error(jsonrpc.invalid_request))
+				return
+			}
+			request_parts := first_line.split(' ')
+			if request_parts.len != 3 {
+				ls.send(new_error(jsonrpc.invalid_request))
+				return
+			}
+			urlpath := request_parts[1]
+			// filename := if urlpath == '/' { ctx.default_filename.trim_left('/') } else { urlpath.trim_left('/') }
+			// if ctx.docs[filename].len == 0 {
+				
+			// 	return
+			// }
+
+			conn.close() or { eprintln('error closing the connection: $err') }
+		}
+
+		return
+	}
+
 	for {
 		first_line := get_raw_input()
 		if first_line.len < 1 || !first_line.starts_with(content_length) {

@@ -22,6 +22,9 @@ fn (mut vls Vls) send(data string) {
 	match vls.connection_type {
 		.tcp {
 			// TODO: tcp
+			ls.tcp_con.write_str(response) or { 
+				eprintln('error sending http response: $err')
+			}
 		}
 		.stdio {
 			print(response)
