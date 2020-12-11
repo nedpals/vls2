@@ -83,10 +83,10 @@ pub mut:
 pub struct SignatureHelpCapability {
 pub mut:
 	dynamic_registration bool [json:dynamicRegistration]
-	signature_information SignatureInformation [json:signatureInformation]
+	signature_information SignatureInfo [json:signatureInformation]
 }
 
-pub struct SignatureInformation {
+pub struct SignatureInfo {
 pub mut:
 	document_format []string [json:documentFormat] // MarkupKind
 	parameter_information ParamsInfo [json:parameterInformation]

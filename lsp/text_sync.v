@@ -64,7 +64,7 @@ pub:
 	text string
 }
 
-pub struct TextDocumentChangeRegistrationOptions {
+pub struct TextDocumentChangeRegistrationOptions2 {
 	document_selector []DocumentFilter [json:documentSelector]
 	include_text bool [json:includeText]
 }
