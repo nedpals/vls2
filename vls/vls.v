@@ -29,25 +29,23 @@ mut:
 	root_path        string
 pub mut:
 	// TODO: replace with io.Writer
-	send             fn (string) = fn (res string) {}
+	response         string
+	test_mode       bool
 }
 
-pub fn (mut ls Vls) execute(payload string) {
+pub fn (mut ls Vls) execute(payload string) string {
 	request := json.decode(jsonrpc.Request, payload) or {
-		ls.send(new_error(jsonrpc.parse_error))
-		return
+		return new_error(jsonrpc.parse_error)
 	}
 	if request.method != 'exit' && ls.status == .shutdown {
-		ls.send(new_error(jsonrpc.invalid_request))
-		return
+		return new_error(jsonrpc.invalid_request)
 	}
 	if request.method != 'initialize' && ls.status != .initialized {
-		ls.send(new_error(jsonrpc.server_not_initialized))
-		return
+		return new_error(jsonrpc.server_not_initialized)
 	}
 	match request.method {
 		'initialize' {
-			ls.initialize(request.id, request.params)
+			return ls.initialize(request.id, request.params)
 		}
 		'initialized' {} // does nothing currently
 		'shutdown' {
@@ -57,17 +55,19 @@ pub fn (mut ls Vls) execute(payload string) {
 			ls.exit(request.params)
 		}
 		'textDocument/didOpen' {
-			ls.did_open(request.id, request.params)
+			return ls.did_open(request.id, request.params)
 		}
 		'textDocument/didChange' {
-			ls.did_change(request.id, request.params)
+			return ls.did_change(request.id, request.params)
 		}
 		else {
 			if ls.status != .initialized {
-				ls.send(new_error(jsonrpc.server_not_initialized))
+				return new_error(jsonrpc.server_not_initialized)
 			}
 		}
 	}
+
+	return ''
 }
 
 // status returns the current server status
@@ -96,7 +96,7 @@ pub fn (mut ls Vls) start_loop() {
 			conlen--
 		}
 		payload := buf.str()
-		ls.execute(payload[1..])
+		ls.send(ls.execute(payload[1..]))
 		unsafe { buf.free() }
 	}
 }
