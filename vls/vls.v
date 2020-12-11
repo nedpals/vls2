@@ -12,10 +12,14 @@ const (
 	content_length = 'Content-Length: '
 )
 
+pub enum ConnectionType {
+	tcp
+	stdio
+}
+
 pub struct Vls {
 mut:
 	table            &table.Table = table.new_table()
-	status           ServerStatus = .off
 	// imports
 	import_graph     map[string][]string
 	mod_import_paths map[string]string
@@ -27,8 +31,11 @@ mut:
 	asts             map[string]map[string]ast.File
 	current_file     string
 	root_path        string
+	connection_type  ConnectionType = .stdio
 pub mut:
 	// TODO: replace with io.Writer
+	// send             fn (string) = fn (res string) {}
+	status           ServerStatus = .off
 	response         string
 	test_mode       bool
 }
