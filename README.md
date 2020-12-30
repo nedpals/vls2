@@ -1,3 +1,5 @@
+> # This repository has been archived. Visit https://github.com/vlang/vls for the latest version.
+
 # vls2
 VLS (V Language Server) is a LSP v3.15-compatible language server for V.
 
